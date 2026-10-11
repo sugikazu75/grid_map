@@ -12,7 +12,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include <tbb/task_scheduler_init.h>
+#include <tbb/global_control.h>
 #include <tbb/tbb.h>
 #include <Eigen/Dense>
 
@@ -62,7 +62,7 @@ bool NormalVectorsFilter::configure() {
   // if parameter is not found an error is thrown and the default is to set it to automatic.
   if (!FilterBase::getParam(std::string("thread_number"), threadCount_)) {
     ROS_WARN("Could not find the parameter: `thread_number`. Setting to default value: 'automatic'.");
-    threadCount_ = tbb::task_scheduler_init::automatic;
+    threadCount_ = -1;  // Use all available threads.
   }
   ROS_DEBUG("Thread_number = %d", threadCount_);
 
@@ -174,9 +174,9 @@ void NormalVectorsFilter::computeWithAreaParallel(GridMap& map, const std::strin
   grid_map::Size gridMapSize = map.getSize();
 
   // Set number of thread to use for parallel programming.
-  std::unique_ptr<tbb::task_scheduler_init> TBBInitPtr;
+  std::unique_ptr<tbb::global_control> TBBInitPtr;
   if (threadCount_ != -1) {
-    TBBInitPtr.reset(new tbb::task_scheduler_init(threadCount_));
+    TBBInitPtr.reset(new tbb::global_control(tbb::global_control::max_allowed_parallelism, threadCount_));
   }
 
   // Parallelized iteration through the map.
@@ -284,9 +284,9 @@ void NormalVectorsFilter::computeWithRasterParallel(GridMap& map, const std::str
   const Index submapBufferSize(gridMapSize(0) - 2, gridMapSize(1) - 2);
   if (submapBufferSize(1) != 0) {
     // Set number of thread to use for parallel programming
-    std::unique_ptr<tbb::task_scheduler_init> TBBInitPtr;
+    std::unique_ptr<tbb::global_control> TBBInitPtr;
     if (threadCount_ != -1) {
-      TBBInitPtr.reset(new tbb::task_scheduler_init(threadCount_));
+      TBBInitPtr.reset(new tbb::global_control(tbb::global_control::max_allowed_parallelism, threadCount_));
     }
     // Parallelized iteration through the map.
     tbb::parallel_for(0, submapBufferSize(0) * submapBufferSize(1), [&](int range) {

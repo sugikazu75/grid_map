@@ -28,6 +28,12 @@ if (OpenMP_FOUND)
   add_definitions(-DGRID_MAP_PCL_OPENMP_FOUND=${OpenMP_FOUND})
 endif()
 
+## Find catkin macros and libraries
+find_package(catkin REQUIRED 
+  COMPONENTS
+    ${CATKIN_PACKAGE_DEPENDENCIES}
+)
+
 find_package(PCL REQUIRED
   COMPONENTS
     common
@@ -37,12 +43,6 @@ find_package(PCL REQUIRED
     kdtree
     segmentation
     surface
-)
-
-## Find catkin macros and libraries
-find_package(catkin REQUIRED 
-  COMPONENTS
-    ${CATKIN_PACKAGE_DEPENDENCIES}
 )
 
 ###################################
